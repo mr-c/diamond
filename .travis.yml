@@ -1,8 +1,46 @@
+language: c++
+script: mkdir build; cd build; cmake ${EXTRA_CMAKE} ..; make
 matrix:
   include:
-    - language: c++
+    - name: "amd64 g++"
       compiler: g++
-      script: mkdir build; cd build; cmake ..; make
-    - language: c++
+    - name: "amd64 clang"
       compiler: clang
-      script: mkdir build; cd build; cmake ..; make
+    - name: "s390x g++"
+      arch: s390x
+      dist: bionic
+      compiler: g++
+      env:
+        - EXTRA_CMAKE=-DX86=OFF
+    - name: "arm64 g++"
+      arch: arm64
+      dist: bionic
+      compiler: g++
+      env:
+        - EXTRA_CMAKE=-DX86=OFF
+    - name: "i686 g++-8"
+      compiler: g++-8
+      dist: bionic
+      env:
+        - CFLAGS=m32
+        - CXXFLAGS=-m32
+        - CXX_COMPILER=g++-8
+      addons:
+        apt:
+          packages:
+            - libc6:i386
+            - libc6-dev:i386
+            - gcc-8:i386
+            - g++-8:i386
+            - cpp-8:i386
+            - binutils:i386
+            - binutils-i686-linux-gnu:i386
+
+before_install:
+## If we use the matrix to set CXX Travis overwrites the values,
+## so instead we use CXX_COMPILER, then copy the values to CC/CXX
+## here (after Travis has set CXX).
+- |
+  if [ -n "${CXX_COMPILER}" ]; then
+    export CXX="${CXX_COMPILER}"
+  fi
